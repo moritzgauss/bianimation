@@ -1,59 +1,135 @@
-// Create styles for the body and animated text
-const styles = `
-    body {
+// CSS Styles for Animation and Board
+const styleContent = `
+
+    #board-container {
         display: flex;
         justify-content: center;
-        align-items: center;
-        height: 200vh; /* Make body taller for scrolling */
-        background-color: #000; /* Black background */
-        color: #00ff00; /* Green text */
-        font-family: 'Courier New', Courier, monospace; /* Monospace font */
-        overflow: hidden; /* Prevent scrolling */
-        margin: 0; /* Remove default margin */
-        position: relative; /* Position relative for child elements */
+        margin-top: 50px;
+        margin-bottom: 50px;
     }
-    #animated-text {
-        font-size: 2em; /* Adjust font size */
-        opacity: 1; /* Start fully visible */
-        transition: opacity 0.5s ease, transform 0.5s ease; /* Smooth transition for opacity and transform */
-        transform: rotateY(0deg); /* Initial rotation */
-        backface-visibility: hidden; /* Hide backface when rotated */
+
+    #board {
+        display: flex;
+        font-size: 2rem;
+        letter-spacing: 0.1em;
+        cursor: pointer;
     }
-    .flipped {
-        transform: rotateY(180deg); /* Flip effect */
+
+    .flap {
+        position: relative;
+        display: inline-block;
+        width: 1em;
+        height: 1.2em;
+        overflow: hidden;
+        background: #000;
+        border: 1px solid #555;
+        margin: 0 0.05em;
+        color: #fff; /* White text */
+        text-align: center;
     }
+
+    /* Upper and lower halves of each flap */
+    .flap::before,
+    .flap::after {
+        content: attr(data-char);
+        position: absolute;
+        width: 100%;
+        height: 50%;
+        left: 0;
+        background: #000;
+        color: #fff;
+        overflow: hidden;
+        transition: transform 0.15s ease-out;
+    }
+
+    .flap::before {
+        top: 0;
+        border-bottom: 1px solid #555;
+        transform-origin: bottom;
+    }
+
+    .flap::after {
+        bottom: 0;
+        border-top: 1px solid #555;
+        transform-origin: top;
+        transform: rotateX(90deg);
+    }
+
+    .flap.flip::before {
+        transform: rotateX(90deg);
+    }
+
+    .flap.flip::after {
+        transform: rotateX(0);
+    }
+
+    #explanationText {
+        font-family: Helvetica, DM-Sans, sans-serif;
+        font-size: 14px;
+        color: #000000;
+        text-align: center;
+        display: none;
+        border: none; /* Remove any borders */
+        line-height: 1.2;
+        padding: 10px 0; 
 `;
 
-// Append styles to the head of the document
+// Append CSS to document head
 const styleSheet = document.createElement("style");
 styleSheet.type = "text/css";
-styleSheet.innerText = styles;
+styleSheet.innerText = styleContent;
 document.head.appendChild(styleSheet);
 
-// Animation logic
-document.addEventListener("DOMContentLoaded", () => {
-    const textElement = document.getElementById("animated-text");
+// JavaScript for Animation Logic
+const binaryString = "01010101 01101110 01100101 01101100 01101100 01100001 01101101";
+const explanationText = "Binary for Tuttofare (ital. Jack of all Trades)";
 
-    const binaryString = "Tuttofare: 01010101 01101110 01100101 01101100 01101100 01100001 01101101"; // Binary representation
-    const finalText = "Tuttofare"; // Final text
-    let currentText = binaryString; // Start with the binary string
+const board = document.getElementById("board");
+const explanation = document.getElementById("explanationText");
 
-    textElement.textContent = currentText; // Set initial text
-
-    window.addEventListener("scroll", () => {
-        const scrollPosition = window.scrollY; // Current scroll position
-        const windowHeight = window.innerHeight; // Height of the viewport
-
-        // Check if scrolled to a certain point
-        if (scrollPosition > windowHeight / 2) { // Trigger halfway down the page
-            textElement.classList.add("flipped"); // Add flipped class for animation
-            setTimeout(() => {
-                textElement.textContent = finalText; // Change to final text
-                textElement.classList.remove("flipped"); // Remove flip effect
-            }, 500); // Delay to allow flip to complete
-        } else {
-            textElement.textContent = binaryString; // Show binary string when scrolled back up
-            textElement.classList.remove("flipped"); // Ensure flip is reset
-        }
+// Function to create flaps with binary characters
+function createFlaps(text) {
+    board.innerHTML = ""; // Clear the board
+    text.split("").forEach(char => {
+        const flap = document.createElement("span");
+        flap.classList.add("flap");
+        flap.setAttribute("data-char", char);
+        flap.textContent = char;
+        board.appendChild(flap);
     });
+}
+
+// Function to start the flipping animation
+function startFlipAnimation() {
+    createFlaps(binaryString);
+
+    [...board.children].forEach((flap, index) => {
+        setTimeout(() => {
+            flap.classList.add("flip");
+            setTimeout(() => {
+                // Display explanation text after all flips
+                if (index === board.children.length - 1) {
+                    board.style.display = "none";
+                    explanation.style.display = "block";
+
+                    // Revert back to initial state after 4 seconds
+                    setTimeout(() => {
+                        explanation.style.display = "none";
+                        board.style.display = "flex";
+                        createFlaps(binaryString);
+                    }, 4000);
+                }
+            }, 100);
+        }, index * 50); // Staggered timing
+    });
+}
+
+// Restart animation on scrolling down from top
+window.addEventListener("scroll", () => {
+    if (window.scrollY === 0) {
+        startFlipAnimation();
+    }
 });
+
+// Initial load animation
+startFlipAnimation();
