@@ -1,3 +1,30 @@
+// Create styles for the body and animated text
+const styles = `
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #000; /* Black background */
+        color: #00ff00; /* Green text */
+        font-family: 'Courier New', Courier, monospace; /* Monospace font */
+        overflow: hidden; /* Prevent scrolling */
+        margin: 0; /* Remove default margin */
+    }
+    #animated-text {
+        font-size: 2em; /* Adjust font size */
+        opacity: 0; /* Start with transparent text */
+        transition: opacity 0.5s ease; /* Smooth transition for opacity */
+    }
+`;
+
+// Append styles to the head of the document
+const styleSheet = document.createElement("style");
+styleSheet.type = "text/css";
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
+
+// Animation logic
 document.addEventListener("DOMContentLoaded", () => {
     const textElement = document.getElementById("animated-text");
 
